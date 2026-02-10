@@ -67,3 +67,7 @@ def get_line_ogg(line_id: int, start_offset: int = 1000, end_offset: int = 3000,
     clip = audio[max(start_time*1000-start_offset, 0):min(end_time*1000+end_offset, audio.duration_seconds*1000)]  # pydub 用毫秒
     ogg_bytes = clip.export(format="ogg").read()
     return Response(content=ogg_bytes, media_type="audio/ogg")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
