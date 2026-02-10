@@ -1,0 +1,6 @@
+fastapi
+pydantic
+pydub
+tinytag
+requests
+uvicorn
