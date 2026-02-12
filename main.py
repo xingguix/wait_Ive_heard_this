@@ -50,7 +50,7 @@ WHERE
     return [LyricResult(**dict(row)) for row in rows]
 
 @app.get("/get_line_ogg/{line_id}")
-def get_line_ogg(line_id: int, start_offset: int = 1000, end_offset: int = 1000, conn: sqlite3.Connection = Depends(get_conn)) -> Response:
+def get_line_ogg(line_id: int, start_offset: int = 600, end_offset: int = 200, conn: sqlite3.Connection = Depends(get_conn)) -> Response:
     cursor = conn.cursor()
     cursor.execute("""
                    SELECT
