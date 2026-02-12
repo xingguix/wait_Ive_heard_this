@@ -4,9 +4,14 @@ from tinytag import TinyTag
 import requests
 
 def convert_timestamp_into_seconds(timestamp):
-    # timestamp格式为"mm:ss:xxxx"
-    minutes, seconds, milliseconds = map(float, timestamp.split(':'))
-    return minutes * 60 + seconds + milliseconds / 1000
+    # timestamp格式通常为"mm:ss:xxxx"
+    try:
+        minutes, seconds, milliseconds = map(float, timestamp.split(':'))
+        return minutes * 60 + seconds + milliseconds / 1000
+    except (ValueError, IndexError):
+        # 处理格式错误的情况
+        print(f"Invalid timestamp format: {timestamp}")
+        return None
 
 def scan_and_add_musics_to_db(conn: sqlite3.Connection):
     cursor = conn.cursor()
@@ -69,8 +74,18 @@ def scan_and_add_musics_to_db(conn: sqlite3.Connection):
             for line in lines:
                 if not line.startswith('['):
                     continue
-                start_time = convert_timestamp_into_seconds(line.split(',')[0].replace('[', ''))
-                end_time = convert_timestamp_into_seconds(line.split(',')[1].split(']')[0])
+                # 确保行包含逗号和右方括号
+                if ',' not in line or ']' not in line:
+                    continue
+                # 提取开始时间和结束时间
+                start_time_str = line.split(',')[0].replace('[', '')
+                end_time_str = line.split(',')[1].split(']')[0]
+                # 转换时间戳
+                start_time = convert_timestamp_into_seconds(start_time_str)
+                end_time = convert_timestamp_into_seconds(end_time_str)
+                # 检查时间戳是否有效
+                if start_time is None or end_time is None:
+                    continue
                 lyric_line: str = line.split(']')[1].strip()
                 # 有些歌曲第一句"歌词"可能是"[00:00:000,00:03:000] 曲名: xxx 演唱者: xxx" 这显然不是歌词, 排除. 
                 # TODO: 考虑个性化设置 详见上一句注释
