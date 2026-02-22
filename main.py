@@ -38,6 +38,7 @@ def search_word(word: str, conn: sqlite3.Connection) -> list[LyricResult]:
     # 如果有非字母字符，直接返回空列表
     if not word.isalpha():
         return []
+    word = word.lower()
     cursor = conn.cursor()
     cursor.execute("""SELECT
 	file_path,
@@ -66,7 +67,6 @@ def get_lines_by_ids(
     """
     if not request.line_ids:
         return []
-    
     cursor = conn.cursor()
     placeholders = ','.join('?' * len(request.line_ids))
     
