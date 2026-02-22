@@ -5,8 +5,11 @@ import requests
 
 def convert_timestamp_into_seconds(timestamp):
     # timestamp格式通常为"mm:ss:xxxx"
+    # 也可能是mm:ss.xxx
     try:
-        minutes, seconds, milliseconds = map(float, timestamp.split(':'))
+        timestamp = timestamp.replace('.', ':')
+        split_timestamp = timestamp.split(':')
+        minutes, seconds, milliseconds = map(float, split_timestamp)
         return minutes * 60 + seconds + milliseconds / 1000
     except (ValueError, IndexError):
         # 处理格式错误的情况
@@ -67,7 +70,11 @@ def scan_and_add_musics_to_db(conn: sqlite3.Connection):
             if response.status_code != 200:
                 print(f"警告:获取{title}的歌词失败, 状态码: {response.status_code}")
                 continue
-            lrc = response.json()['data'][0]['lrc']
+            try:
+                lrc = response.json()['data'][0]['lrc']
+            except (KeyError, IndexError, ValueError) as e:
+                print(f"警告:解析{title} - {artist}的歌词时发生错误: {e}")
+                continue
             lines = lrc.split('\r\n')
             song_id = cursor.lastrowid
 
