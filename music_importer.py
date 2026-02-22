@@ -2,10 +2,10 @@ import sqlite3
 import os
 from tinytag import TinyTag
 import requests
+import shutil
 
 def recopy_db():
-    # 使用文件系统拷贝template_db.db 到 music.db
-    os.system("copy template_db.db music.db")
+    shutil.copy("template_db.db", "music.db")
     
 
 def convert_timestamp_into_seconds(timestamp):
