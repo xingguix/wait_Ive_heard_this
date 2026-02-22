@@ -72,7 +72,7 @@ def scan_and_add_musics_to_db(conn: sqlite3.Connection):
                 continue
             try:
                 lrc = response.json()['data'][0]['lrc']
-            except (KeyError, IndexError, ValueError) as e:
+            except (TypeError, KeyError) as e:
                 print(f"警告:解析{title} - {artist}的歌词时发生错误: {e}")
                 continue
             lines = lrc.split('\r\n')
@@ -88,6 +88,7 @@ def scan_and_add_musics_to_db(conn: sqlite3.Connection):
                 start_time_str = line.split(',')[0].replace('[', '')
                 end_time_str = line.split(',')[1].split(']')[0]
                 # 转换时间戳
+                print(f"原始开始时间: {start_time_str}, 原始结束时间: {end_time_str}")
                 start_time = convert_timestamp_into_seconds(start_time_str)
                 end_time = convert_timestamp_into_seconds(end_time_str)
                 # 检查时间戳是否有效
