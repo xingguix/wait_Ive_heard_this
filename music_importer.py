@@ -77,7 +77,8 @@ def scan_and_add_musics_to_db(conn: sqlite3.Connection):
                 continue
             lines = lrc.split('\r\n')
             song_id = cursor.lastrowid
-
+            print(f"开始处理{title} - {artist}的歌词, 共{len(lines)}行")
+            lyric_doesnt_match: bool = False
             for line in lines:
                 if not line.startswith('['):
                     continue
@@ -93,6 +94,11 @@ def scan_and_add_musics_to_db(conn: sqlite3.Connection):
                 # 检查时间戳是否有效
                 if start_time is None or end_time is None:
                     continue
+                if duration:
+                    if end_time > duration:
+                        lyric_doesnt_match = True
+                        print(f"警告: 歌词匹配失败:处理{title} - {artist}时,结束时间{end_time_str}超过歌曲时长{duration}")
+                        break
                 lyric_line: str = line.split(']')[1].strip()
                 # 有些歌曲第一句"歌词"可能是"[00:00:000,00:03:000] 曲名: xxx 演唱者: xxx" 这显然不是歌词, 排除. 
                 # TODO: 考虑个性化设置 详见上一句注释
@@ -107,6 +113,9 @@ def scan_and_add_musics_to_db(conn: sqlite3.Connection):
                     if not word:
                         continue # 跳过空单词
                     cursor.execute("INSERT INTO word_index (word, line_id) VALUES (?, ?)", (word.lower(), line_id))
+            if lyric_doesnt_match:
+                conn.rollback()
+                continue
             # 呼, 终于搞定了.
             conn.commit() # 注意: 即使不提交也能获取cursor.lastrowid, 因为它在事务中
             print(f"成功导入{title} - {artist}的歌词")
