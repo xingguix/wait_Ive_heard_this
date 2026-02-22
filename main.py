@@ -1,5 +1,5 @@
 from typing import Generator
-from fastapi import Depends
+from fastapi import Depends, Body
 import sqlite3
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
@@ -15,6 +15,9 @@ class LyricResult(BaseModel):
     title: str = Field(..., description="歌曲名")
     artist: str = Field(..., description="歌手")
 
+# 新增：请求体模型
+class LineIdsRequest(BaseModel):
+    line_ids: list[int] = Field(..., description="歌词行ID数组", min_length=1)
 
 app = FastAPI()
 DB_PATH = "music.db"
@@ -31,7 +34,6 @@ def get_conn() -> Generator[sqlite3.Connection, None, None]:
 def get_word(word: str, conn: sqlite3.Connection = Depends(get_conn)) -> list[LyricResult]:
     return search_word(word, conn)
 
-
 def search_word(word: str, conn: sqlite3.Connection) -> list[LyricResult]:
     cursor = conn.cursor()
     cursor.execute("""SELECT
@@ -46,6 +48,38 @@ FROM
 	( word_index JOIN lyric_lines ON word_index.line_id = lyric_lines.id JOIN songs ON lyric_lines.song_id = songs.id ) 
 WHERE
 	word = ?;""", (word,))
+    rows = cursor.fetchall()
+    return [LyricResult(**dict(row)) for row in rows]
+
+
+@app.post("/get_lines")
+def get_lines_by_ids(
+    request: LineIdsRequest, 
+    conn: sqlite3.Connection = Depends(get_conn)
+) -> list[LyricResult]:
+    """
+    通过line_id数组批量获取歌词行详情
+    返回格式与 /search/{word} 完全相同
+    """
+    if not request.line_ids:
+        return []
+    
+    cursor = conn.cursor()
+    placeholders = ','.join('?' * len(request.line_ids))
+    
+    cursor.execute(f"""SELECT
+        file_path,
+        line,
+        start_time,
+        end_time,
+        title,
+        artist,
+        lyric_lines.id as line_id
+    FROM
+        lyric_lines 
+    JOIN songs ON lyric_lines.song_id = songs.id
+    WHERE lyric_lines.id IN ({placeholders});""", tuple(request.line_ids))
+    
     rows = cursor.fetchall()
     return [LyricResult(**dict(row)) for row in rows]
 
