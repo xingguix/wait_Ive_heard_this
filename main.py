@@ -35,6 +35,9 @@ def get_word(word: str, conn: sqlite3.Connection = Depends(get_conn)) -> list[Ly
     return search_word(word, conn)
 
 def search_word(word: str, conn: sqlite3.Connection) -> list[LyricResult]:
+    # 如果有非字母字符，直接返回空列表
+    if not word.isalpha():
+        return []
     cursor = conn.cursor()
     cursor.execute("""SELECT
 	file_path,
