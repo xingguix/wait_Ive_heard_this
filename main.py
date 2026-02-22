@@ -17,7 +17,7 @@ class LyricResult(BaseModel):
 
 # 新增：请求体模型
 class LineIdsRequest(BaseModel):
-    line_ids: list[int] = Field(..., description="歌词行ID数组", min_length=1)
+    line_ids: list[int] = Field(..., description="歌词行ID数组")
 
 app = FastAPI()
 DB_PATH = "music.db"
