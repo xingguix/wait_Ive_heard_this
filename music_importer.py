@@ -88,7 +88,6 @@ def scan_and_add_musics_to_db(conn: sqlite3.Connection):
                 start_time_str = line.split(',')[0].replace('[', '')
                 end_time_str = line.split(',')[1].split(']')[0]
                 # 转换时间戳
-                print(f"原始开始时间: {start_time_str}, 原始结束时间: {end_time_str}")
                 start_time = convert_timestamp_into_seconds(start_time_str)
                 end_time = convert_timestamp_into_seconds(end_time_str)
                 # 检查时间戳是否有效
@@ -110,6 +109,7 @@ def scan_and_add_musics_to_db(conn: sqlite3.Connection):
                     cursor.execute("INSERT INTO word_index (word, line_id) VALUES (?, ?)", (word.lower(), line_id))
             # 呼, 终于搞定了.
             conn.commit() # 注意: 即使不提交也能获取cursor.lastrowid, 因为它在事务中
+            print(f"成功导入{title} - {artist}的歌词")
     cursor.close()
 
 if __name__ == '__main__':
