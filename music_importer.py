@@ -3,6 +3,11 @@ import os
 from tinytag import TinyTag
 import requests
 
+def recopy_db():
+    # 使用文件系统拷贝template_db.db 到 music.db
+    os.system("copy template_db.db music.db")
+    
+
 def convert_timestamp_into_seconds(timestamp):
     # timestamp格式通常为"mm:ss:xxxx"
     # 也可能是mm:ss.xxx
@@ -123,5 +128,7 @@ def scan_and_add_musics_to_db(conn: sqlite3.Connection):
 
 if __name__ == '__main__':
     # 使用示例
-    with sqlite3.connect('music copy.db') as conn:
+    if not os.path.exists('music.db'):
+        recopy_db()
+    with sqlite3.connect('music.db') as conn:
         scan_and_add_musics_to_db(conn)

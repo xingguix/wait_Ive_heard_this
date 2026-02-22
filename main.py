@@ -17,7 +17,7 @@ class LyricResult(BaseModel):
 
 
 app = FastAPI()
-DB_PATH = "music copy.db"
+DB_PATH = "music.db"
 
 def get_conn() -> Generator[sqlite3.Connection, None, None]:
     conn = sqlite3.connect(DB_PATH)
@@ -69,5 +69,11 @@ def get_line_ogg(line_id: int, start_offset: int = 300, end_offset: int = 200, c
     return Response(content=ogg_bytes, media_type="audio/ogg")
 
 if __name__ == "__main__":
+    import os
+    if not os.path.exists(DB_PATH):
+        import music_importer
+        music_importer.recopy_db()
+        with sqlite3.connect(DB_PATH) as conn:
+            music_importer.scan_and_add_musics_to_db(conn)
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
