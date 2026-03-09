@@ -7,7 +7,7 @@ from pydub import AudioSegment
 from fastapi.responses import Response
 
 class LyricResult(BaseModel):
-    file_path: str = Field(..., description="歌词文件路径")
+    file_path: str = Field(..., description="歌曲文件路径")
     line_id: int = Field(..., description="歌词行ID")
     line: str = Field(..., description="歌词行内容")
     start_time: float = Field(..., description="开始时间（秒）")
@@ -113,4 +113,5 @@ if __name__ == "__main__":
         with sqlite3.connect(DB_PATH) as conn:
             music_importer.scan_and_add_musics_to_db(conn)
     import uvicorn
+    # 更新：支持arg指定host和port
     uvicorn.run(app, host="0.0.0.0", port=8000)
